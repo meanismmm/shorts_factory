@@ -242,7 +242,7 @@ ${extra?'추가 조건: '+extra:''}
 6. narration: 나레이션 (구어체, 35자 이내, 이어지면 하나의 스토리)
 7. image_prompt: 이 장면 배경으로 쓸 AI 이미지 생성 프롬프트 (영어, 30단어 이내, 수묵화/유화/일러스트 등 스타일 명시, 사람 얼굴 최대한 배제)
 8. beat: hook/rising/climax/twist/landing/cta 중 하나
-9. duration: hook=3~4초, rising=4~5초, climax=5~7초, twist=4~5초, landing=4초, cta=3초
+9. duration: 모든 컷 반드시 3~5초 이내. hook=3초, rising=4초, climax=5초, twist=4초, landing=3초, cta=3초. 절대 5초 초과 금지.
 
 {
   "title": "유튜브 제목 (궁금증 유발, 30자 이내)",
@@ -251,16 +251,16 @@ ${extra?'추가 조건: '+extra:''}
   "thumbnail_text": "썸네일 문구 20자 이내",
   "story_hook": "첫 3초 시청자를 잡는 핵심 질문",
   "scenes": [
-    {"beat":"hook","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt here"},
-    {"beat":"hook","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"rising","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"rising","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"rising","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"climax","duration":6,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"climax","duration":6,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"twist","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"landing","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
-    {"beat":"landing","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"hook","duration":3,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt here"},
+    {"beat":"hook","duration":3,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"rising","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"rising","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"rising","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"climax","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"climax","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"twist","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"landing","duration":3,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"landing","duration":3,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
     {"beat":"cta","duration":3,"top_text":"다음 편도 있어요","main_text":"구독해주세요","bottom_text":"좋아요와 알림설정 부탁드려요","narration":"구독과 좋아요 눌러주세요!","image_prompt":"beautiful korean landscape ink painting traditional style"}
   ],
   "youtube_hashtags":["#태그1","#태그2","#태그3","#태그4","#태그5"],
@@ -335,78 +335,105 @@ async function startProduction(){
 }
 
 // ══════════════════════════════════════════════════════
-// 2단계: AI 이미지 생성 (다중 소스 자동 폴백)
-// 1순위: Pollinations  2순위: Lexica  3순위: Picsum(분위기)
+// 2단계: 장면별 배경 Canvas 이미지 생성
+// 외부 API 불필요 — 100% 브라우저 자체 생성
+// beat + 키워드 기반 고품질 그래픽 배경
 // ══════════════════════════════════════════════════════
 async function generateImages(){
   setStep(2,'active');
-  log('🖼️ AI 이미지 생성 중...','info');
+  log('🖼️ 배경 이미지 생성 중...','info');
   const scenes=scriptData.scenes;
+  const W=1080,H=1920;
+  const offscreen=document.createElement('canvas');
+  offscreen.width=W; offscreen.height=H;
+  const oc=offscreen.getContext('2d');
 
   for(let i=0;i<scenes.length;i++){
-    const prompt=scenes[i].image_prompt||'cinematic landscape';
-    setProgress(5+(i/scenes.length)*23,`AI 이미지 생성 ${i+1}/${scenes.length}...`);
-    log(`  [${i+1}] "${prompt.slice(0,40)}"`);
+    const scene=scenes[i];
+    setProgress(5+(i/scenes.length)*23,`배경 생성 ${i+1}/${scenes.length}...`);
 
-    let blob=null;
+    // beat + index 기반 배경 팔레트
+    const palettes={
+      hook:[['#1a0500','#3d0a00'],['#1a0010','#3d0030']],
+      rising:[['#00051a','#000d3d'],['#001a0d','#003d1a']],
+      climax:[['#1a0000','#3d0505'],['#0d001a','#200040']],
+      twist:[['#0a001a','#1a0040'],['#001018','#003040']],
+      landing:[['#051a00','#0d3d00'],['#001a10','#003d2a']],
+      cta:[['#050010','#10002a'],['#000a10','#001025']],
+    };
+    const pal=palettes[scene.beat]||palettes.rising;
+    const [c1,c2]=pal[i%pal.length];
 
-    // ── 1순위: Pollinations (타임아웃 10초) ──
-    if(!blob){
-      try{
-        const enc=encodeURIComponent(prompt+', cinematic, no text, no watermark');
-        const url=`https://image.pollinations.ai/prompt/${enc}?width=1080&height=1920&nologo=true&nofeed=true&seed=${i*97+13}`;
-        const ctrl=new AbortController();
-        const timer=setTimeout(()=>ctrl.abort(),10000);
-        const res=await fetch(url,{signal:ctrl.signal});
-        clearTimeout(timer);
-        if(res.ok){
-          const b=await res.blob();
-          if(b.type.startsWith('image/') && b.size>5000){blob=b;log('  ✅ Pollinations','ok');}
-        }
-      }catch(e){log(`  ⚠️ Pollinations 실패`);}
+    // ── 배경 그라데이션 ──
+    const bg=oc.createLinearGradient(0,0,W*0.6,H);
+    bg.addColorStop(0,c1); bg.addColorStop(1,c2);
+    oc.fillStyle=bg; oc.fillRect(0,0,W,H);
+
+    // ── 광원 효과 (중상단) ──
+    const radX=W*(0.3+Math.sin(i*1.3)*0.3);
+    const radY=H*(0.2+Math.cos(i*0.9)*0.1);
+    const lightColors={hook:'rgba(255,100,0,0.18)',rising:'rgba(0,80,255,0.15)',climax:'rgba(200,0,0,0.22)',twist:'rgba(120,0,220,0.18)',landing:'rgba(0,160,80,0.15)',cta:'rgba(80,60,220,0.18)'};
+    const lc=lightColors[scene.beat]||'rgba(100,100,255,0.12)';
+    const light=oc.createRadialGradient(radX,radY,0,radX,radY,H*0.7);
+    light.addColorStop(0,lc); light.addColorStop(1,'rgba(0,0,0,0)');
+    oc.fillStyle=light; oc.fillRect(0,0,W,H);
+
+    // ── 두 번째 광원 (하단 반대편) ──
+    const light2=oc.createRadialGradient(W-radX,H-radY,0,W-radX,H-radY,H*0.5);
+    const lc2=lc.replace(/[\d.]+\)$/,'0.10)');
+    light2.addColorStop(0,lc2); light2.addColorStop(1,'rgba(0,0,0,0)');
+    oc.fillStyle=light2; oc.fillRect(0,0,W,H);
+
+    // ── 파티클 / 별 효과 ──
+    const seed=i*137+42;
+    for(let p=0;p<60;p++){
+      const px=((seed*p*73+p*191)%W+W)%W;
+      const py=((seed*p*41+p*317)%H+H)%H;
+      const pr=0.8+((seed*p*13)%8)*0.3;
+      const alpha=0.15+((seed*p*7)%10)*0.04;
+      oc.beginPath();
+      oc.arc(px,py,pr,0,Math.PI*2);
+      oc.fillStyle=`rgba(255,255,255,${alpha.toFixed(2)})`;
+      oc.fill();
     }
 
-    // ── 2순위: Lexica.art (프롬프트 검색) ──
-    if(!blob){
-      try{
-        const q=encodeURIComponent(prompt.split(',')[0].trim());
-        const res=await fetch(`https://lexica.art/api/v1/search?q=${q}`);
-        if(res.ok){
-          const data=await res.json();
-          const imgs=data.images||[];
-          // 세로 비율 이미지 우선
-          const chosen=imgs.find(img=>img.height>=img.width)||imgs[0];
-          if(chosen){
-            const imgRes=await fetch(chosen.src);
-            if(imgRes.ok){
-              blob=await imgRes.blob();
-              log('  ✅ Lexica','ok');
-            }
-          }
-        }
-      }catch(e){log(`  ⚠️ Lexica 실패`);}
+    // ── 수평 스캔라인 (미묘하게) ──
+    for(let y=0;y<H;y+=4){
+      oc.fillStyle='rgba(0,0,0,0.04)';
+      oc.fillRect(0,y,W,1);
     }
 
-    // ── 3순위: Unsplash (키워드 기반) ──
-    if(!blob){
-      try{
-        const kw=encodeURIComponent(prompt.split(' ').slice(0,3).join(' '));
-        const res=await fetch(`https://source.unsplash.com/1080x1920/?${kw}`);
-        if(res.ok){
-          blob=await res.blob();
-          if(blob.size>10000) log('  ✅ Unsplash','ok');
-          else blob=null;
-        }
-      }catch(e){log(`  ⚠️ Unsplash 실패`);}
+    // ── 대각선 빛줄기 ──
+    oc.save();
+    oc.globalAlpha=0.04;
+    oc.translate(W/2,H*0.25);
+    const lineColor=lc.replace(/[\d.]+\)$/,'1)');
+    for(let a=0;a<8;a++){
+      const angle=(a/8)*Math.PI*2+(i*0.4);
+      oc.strokeStyle=lineColor;
+      oc.lineWidth=60;
+      oc.beginPath();
+      oc.moveTo(0,0);
+      oc.lineTo(Math.cos(angle)*H,Math.sin(angle)*H);
+      oc.stroke();
     }
+    oc.restore();
 
-    if(!blob) log('  → 그라데이션 배경 사용');
-    imageBlobs.push(blob||null);
-    await new Promise(r=>setTimeout(r,300));
+    // ── 하단 페이드 (자막 영역 가독성) ──
+    const fade=oc.createLinearGradient(0,H*0.5,0,H);
+    fade.addColorStop(0,'rgba(0,0,0,0)');
+    fade.addColorStop(0.6,'rgba(0,0,0,0.4)');
+    fade.addColorStop(1,'rgba(0,0,0,0.75)');
+    oc.fillStyle=fade; oc.fillRect(0,0,W,H);
+
+    // Canvas → Blob
+    const blob=await new Promise(r=>offscreen.toBlob(r,'image/jpeg',0.85));
+    imageBlobs.push(blob);
+    log(`  [${i+1}] ✅ ${scene.beat} 배경 생성`,'ok');
   }
+
   setStep(2,'done');
-  const ok=imageBlobs.filter(b=>b).length;
-  log(`✅ 이미지 생성 완료 (${ok}/${scenes.length}건 성공)`,'ok');
+  log(`✅ 배경 이미지 ${scenes.length}장 생성 완료`,'ok');
 }
 
 // ══════════════════════════════════════════════════════
@@ -601,8 +628,9 @@ async function composeVideo(){
       s.start(sceneStartTime+0.25);
     }
 
-    const narrDur=narrBuf?narrBuf.duration+0.7:0;
-    const dur=Math.max(scene.duration,narrDur)*1000;
+    const narrDur=narrBuf?narrBuf.duration+0.5:0;
+    const rawDur=Math.max(scene.duration,narrDur);
+    const dur=Math.min(rawDur,5)*1000; // 최대 5초 강제 제한
     sceneStartTime+=dur/1000;
 
     setProgress(52+(i/scenes.length)*42,`장면 ${i+1}/${scenes.length} 합성...`);
