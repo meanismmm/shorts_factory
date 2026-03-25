@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts Factory</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #e8e6f0; min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 24px; text-align: center; border-bottom: 1px solid #2a2a4a; }
+.header h1 { font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: #888; font-size: 14px; margin-top: 6px; }
+.container { max-width: 780px; margin: 0 auto; padding: 24px 16px; }
+.card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; font-weight: 600; color: #a78bfa; margin-bottom: 16px; }
+label { font-size: 13px; color: #aaa; display: block; margin-bottom: 6px; }
+input[type="password"], input[type="file"], select, textarea {
+  width: 100%; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 10px;
+  color: #e8e6f0; padding: 10px 14px; font-size: 14px; outline: none; transition: border-color 0.2s;
+}
+input[type="file"] { padding: 8px 14px; cursor: pointer; }
+input:focus, select:focus, textarea:focus { border-color: #a78bfa; }
+textarea { resize: vertical; min-height: 80px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s; width: 100%; margin-top: 8px; }
+.btn-primary { background: linear-gradient(135deg, #7c3aed, #2563eb); color: #fff; }
+.btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-green { background: linear-gradient(135deg, #059669, #0284c7); color: #fff; }
+.btn-gray { background: #1e1e3a; color: #aaa; border: 1px solid #2a2a4a; }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.step { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid #2a2a4a; color: #555; }
+.step.active { border-color: #a78bfa; color: #a78bfa; background: #1e1040; }
+.step.done { border-color: #059669; color: #34d399; background: #0a2e1e; }
+.step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.log { background: #0a0a14; border: 1px solid #1e1e3a; border-radius: 10px; padding: 14px; font-family: monospace; font-size: 13px; min-height: 60px; max-height: 220px; overflow-y: auto; color: #7dd3fc; }
+.log-line.ok { color: #34d399; }
+.log-line.err { color: #f87171; }
+.log-line.info { color: #a78bfa; }
+.progress-bar { height: 8px; background: #1e1e3a; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #2563eb); border-radius: 4px; transition: width 0.3s; }
+.progress-label { font-size: 13px; color: #aaa; margin-top: 6px; }
+.meta-title { font-size: 20px; font-weight: 700; color: #a78bfa; margin-bottom: 6px; }
+.meta-sub { font-size: 13px; color: #888; margin-bottom: 10px; }
+.meta-label { font-size: 12px; color: #666; margin-top: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.meta-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { background: #1e1040; border: 1px solid #3730a3; color: #a78bfa; padding: 3px 10px; border-radius: 20px; font-size: 12px; }
+.tag-insta { background: #1a0a2e; border: 1px solid #7c3aed; color: #c084fc; }
+.thumbnail-text { font-size: 17px; font-weight: 700; color: #fbbf24; padding: 10px; background: #1a1000; border-radius: 8px; border: 1px solid #92400e; margin-top: 6px; }
+.scene-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #1e1e2e; }
+.scene-item:last-child { border-bottom: none; }
+.scene-num { width: 26px; height: 26px; border-radius: 50%; background: #1e1040; border: 1px solid #3730a3; color: #a78bfa; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.beat-badge { font-size: 10px; padding: 1px 7px; border-radius: 4px; font-weight: 700; display: inline-block; margin-bottom: 3px; }
+.scene-main { font-size: 14px; font-weight: 600; color: #e8e6f0; margin-bottom: 2px; }
+.scene-narr { font-size: 12px; color: #93c5fd; font-style: italic; margin-bottom: 2px; }
+.scene-img-kw { font-size: 11px; color: #666; }
+.divider { height: 1px; background: #2a2a4a; margin: 16px 0; }
+.hidden { display: none; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+.badge-free { background: #0a2e1e; color: #34d399; border: 1px solid #059669; }
+.done-video { width: 100%; max-height: 420px; border-radius: 12px; border: 1px solid #2a2a4a; display: block; margin-bottom: 16px; }
+.tip-box { background: #0f1a0f; border: 1px solid #166534; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #86efac; margin-top: 8px; line-height: 1.7; }
+.tip-box a { color: #4ade80; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎬 Shorts Factory</h1>
+  <p>AI 이미지 배경 · 레퍼런스 자막 스타일 · 나레이션 · BGM</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>⚙️ API 설정</h2>
+    <div class="row2">
+      <div>
+        <label>Claude API 키 <span class="badge badge-free">스크립트</span></label>
+        <input type="password" id="claude-key" placeholder="sk-ant-...">
+      </div>
+      <div>
+        <label>ElevenLabs API 키 <span class="badge badge-free">나레이션 선택</span></label>
+        <input type="password" id="elevenlabs-key" placeholder="없으면 나레이션 생략">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎬 콘텐츠 설정</h2>
+    <div class="row2">
+      <div>
+        <label>주제</label>
+        <select id="niche">
+          <option value="해외 유튜브에서 현재 인기 있는 주제 (역사 미스터리, 충격적 과학 사실, 알려지지 않은 역사, 심리학 반전 등) 중 하나를 골라 한국어로 완전히 새롭게 재구성">🌍 해외 트렌딩 주제 → 한국어 재구성</option>
+          <option value="한국 역사/인물 (조선시대, 근현대, 충격적 사실, 반전 있는 이야기)">📜 한국 역사/인물</option>
+          <option value="국내외 사회 이슈/통찰 (알려지지 않은 사실, 반전)">🌏 사회 이슈/통찰</option>
+          <option value="AI/테크 지식 (최신 트렌드, 충격적 사실)">🤖 AI/테크</option>
+          <option value="세계사 속 충격적인 사건/인물 (반전 있는 이야기, 한국어로 새롭게 구성)">🏛️ 세계사 충격 사건</option>
+          <option value="과학/우주/자연의 놀라운 사실 (최신 발견, 반전 있는 내용)">🔬 과학/우주 충격 사실</option>
+          <option value="심리학/인간 행동의 충격적인 사실 (실험 결과, 반전)">🧠 심리학 반전</option>
+        </select>
+      </div>
+      <div>
+        <label>자막 스타일</label>
+        <select id="subtitle-style">
+          <option value="news">📺 뉴스 클립 스타일 (레퍼런스형)</option>
+          <option value="drama">🎭 드라마틱 스타일</option>
+          <option value="clean">✨ 깔끔한 미니멀</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label>추가 요청사항 (선택)</label>
+      <textarea id="extra-prompt" placeholder="예: 조선 22대 정조 관련, 반드시 반전 포함, 20~30대 타겟"></textarea>
+    </div>
+    <div style="margin-top:14px">
+      <label>🎵 배경음악 mp3 <span class="badge badge-free">선택사항</span></label>
+      <input type="file" id="bgm-file" accept="audio/*">
+      <div class="tip-box">
+        무료 BGM: <a href="https://studio.youtube.com/channel/music" target="_blank">유튜브 오디오 라이브러리</a> → 다운로드 후 업로드
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step" id="step-1"><span class="step-dot"></span>스크립트</div>
+    <div class="step" id="step-2"><span class="step-dot"></span>AI 이미지</div>
+    <div class="step" id="step-3"><span class="step-dot"></span>나레이션</div>
+    <div class="step" id="step-4"><span class="step-dot"></span>합성</div>
+    <div class="step" id="step-5"><span class="step-dot"></span>완성</div>
+  </div>
+
+  <button class="btn btn-primary" id="start-btn" onclick="startFactory()">▶ 영상 자동 생성 시작</button>
+
+  <div class="card hidden" id="log-card" style="margin-top:20px">
+    <h2>📋 진행 상황</h2>
+    <div class="log" id="log"></div>
+    <div class="progress-bar" id="pbar" style="display:none"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label hidden" id="plabel"></div>
+  </div>
+
+  <div class="card hidden" id="script-card">
+    <h2>📝 생성된 스크립트</h2>
+    <div id="meta-preview"></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:10px" id="scene-count-label"></div>
+    <div id="scene-preview"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" onclick="startProduction()" style="flex:1">✅ 이 스크립트로 영상 만들기</button>
+      <button class="btn btn-gray" onclick="startFactory()" style="flex:1">🔄 다시 생성</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="done-card">
+    <h2>🎉 영상 완성!</h2>
+    <video id="preview-video" class="done-video" controls playsinline></video>
+    <a class="btn btn-green" id="dl-btn" download="shorts.mp4">⬇️ 영상 다운로드</a>
+    <div class="divider"></div>
+    <div id="upload-meta"></div>
+    <button class="btn btn-green" onclick="copyAllMeta()" style="margin-top:12px">📋 제목 + 해시태그 복사</button>
+    <button class="btn btn-primary" onclick="location.reload()" style="margin-top:8px">🔄 새 영상 만들기</button>
+  </div>
+
+</div>
+
+<canvas id="composer" width="1080" height="1920" style="display:none"></canvas>
+
+<script>
+let scriptData = null;
+let imageBlobs = [];
+let narrBuffers = [];
+
+const BEAT_LABELS = { hook:'훅', rising:'긴장', climax:'클라이맥스', twist:'반전', landing:'마무리', cta:'구독유도' };
+const BEAT_COLORS = { hook:'#92400e', rising:'#1e3a8a', climax:'#7f1d1d', twist:'#581c87', landing:'#14532d', cta:'#1e1b4b' };
+const BEAT_TEXT   = { hook:'#fbbf24', rising:'#93c5fd', climax:'#fca5a5', twist:'#e879f9', landing:'#86efac', cta:'#a5b4fc' };
+
+function log(msg,type=''){
+  const el=document.getElementById('log');
+  const d=document.createElement('div');
+  d.className='log-line '+type; d.textContent=msg;
+  el.appendChild(d); el.scrollTop=el.scrollHeight;
+}
+function setStep(n,s){document.getElementById('step-'+n).className='step '+s;}
+function setProgress(pct,label){
+  document.getElementById('pbar').style.display='block';
+  document.getElementById('pfill').style.width=pct+'%';
+  const l=document.getElementById('plabel');
+  l.classList.remove('hidden'); l.textContent=label;
+}
+
+// ══════════════════════════════════════════════════════
+// 1단계: 스크립트 생성
+// ══════════════════════════════════════════════════════
+async function startFactory(){
+  const claudeKey=document.getElementById('claude-key').value.trim();
+  if(!claudeKey){alert('Claude API 키를 입력하세요.');return;}
+  document.getElementById('start-btn').disabled=true;
+  document.getElementById('log-card').classList.remove('hidden');
+  document.getElementById('script-card').classList.add('hidden');
+  document.getElementById('done-card').classList.add('hidden');
+  document.getElementById('log').innerHTML='';
+  document.getElementById('pbar').style.display='none';
+  document.getElementById('plabel').classList.add('hidden');
+  [1,2,3,4,5].forEach(n=>setStep(n,''));
+  setStep(1,'active');
+  log('🤖 Claude에게 스크립트 요청 중...','info');
+
+  const niche=document.getElementById('niche').value;
+  const extra=document.getElementById('extra-prompt').value.trim();
+
+  const prompt=`너는 해외 유튜브 트렌딩 콘텐츠를 한국어로 재구성하는 전문 스토리텔러야.
+'${niche}' 분야에서 시청자가 끝까지 보게 만드는 주제 하나를 골라,
+반드시 아래 JSON 형식으로만 응답해. 마크다운 기호 절대 금지.
+${extra?'추가 조건: '+extra:''}
+
+핵심 규칙:
+1. 기승전결 구조의 완결된 하나의 이야기 (단어 나열 절대 금지)
+2. scenes 10~12개
+3. top_text: 화면 상단 소제목 (15자 이내, 맥락 설명)
+4. main_text: 화면 중앙 메인 자막 (20자 이내, 굵고 임팩트 있게)
+5. bottom_text: 화면 하단 장면 설명 (25자 이내, 구체적 사실/수치)
+6. narration: 나레이션 (구어체, 35자 이내, 이어지면 하나의 스토리)
+7. image_prompt: 이 장면 배경으로 쓸 AI 이미지 생성 프롬프트 (영어, 30단어 이내, 수묵화/유화/일러스트 등 스타일 명시, 사람 얼굴 최대한 배제)
+8. beat: hook/rising/climax/twist/landing/cta 중 하나
+9. duration: hook=3~4초, rising=4~5초, climax=5~7초, twist=4~5초, landing=4초, cta=3초
+
+{
+  "title": "유튜브 제목 (궁금증 유발, 30자 이내)",
+  "instagram_title": "인스타 제목 30자 이내",
+  "topic": "주제 한 줄 요약",
+  "thumbnail_text": "썸네일 문구 20자 이내",
+  "story_hook": "첫 3초 시청자를 잡는 핵심 질문",
+  "scenes": [
+    {"beat":"hook","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt here"},
+    {"beat":"hook","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"rising","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"rising","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"rising","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"climax","duration":6,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"climax","duration":6,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"twist","duration":5,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"landing","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"landing","duration":4,"top_text":"상단 소제목","main_text":"메인 자막","bottom_text":"하단 설명","narration":"나레이션","image_prompt":"english image prompt"},
+    {"beat":"cta","duration":3,"top_text":"다음 편도 있어요","main_text":"구독해주세요","bottom_text":"좋아요와 알림설정 부탁드려요","narration":"구독과 좋아요 눌러주세요!","image_prompt":"beautiful korean landscape ink painting traditional style"}
+  ],
+  "youtube_hashtags":["#태그1","#태그2","#태그3","#태그4","#태그5"],
+  "instagram_hashtags":["#태그1","#태그2","#태그3","#태그4","#태그5","#태그6","#태그7","#태그8","#태그9","#태그10"]
+}`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:3000,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API 오류');}
+    const data=await res.json();
+    let raw=(data.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    const match=raw.match(/\{[\s\S]*\}/);
+    if(!match)throw new Error('JSON 파싱 실패 — 다시 시도해주세요');
+    scriptData=JSON.parse(match[0]);
+    const totalSec=scriptData.scenes.reduce((s,c)=>s+c.duration,0);
+    setStep(1,'done');
+    log(`✅ 주제: ${scriptData.topic}`,'ok');
+    log(`✅ 제목: ${scriptData.title}`,'ok');
+    log(`✅ ${scriptData.scenes.length}컷 · 총 ${totalSec}초`,'ok');
+    renderPreview(totalSec);
+    document.getElementById('script-card').classList.remove('hidden');
+    document.getElementById('start-btn').disabled=false;
+  }catch(e){
+    log('❌ '+e.message,'err');
+    setStep(1,'');
+    document.getElementById('start-btn').disabled=false;
+  }
+}
+
+function renderPreview(totalSec){
+  const m=scriptData;
+  document.getElementById('meta-preview').innerHTML=`
+    <div class="meta-title">${m.title}</div>
+    <div class="meta-sub">${m.topic}</div>
+    <div style="background:#1a1000;border:1px solid #92400e;border-radius:8px;padding:10px;margin-top:8px">
+      <div style="font-size:11px;color:#d97706;margin-bottom:3px">STORY HOOK</div>
+      <div style="font-size:14px;color:#fde68a">${m.story_hook}</div>
+    </div>
+    <div class="thumbnail-text">🖼️ ${m.thumbnail_text}</div>
+    <div class="meta-label">유튜브 해시태그</div>
+    <div class="meta-tags">${m.youtube_hashtags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+  document.getElementById('scene-count-label').textContent=`스토리 구성 (${m.scenes.length}컷 · 총 ${totalSec}초)`;
+  document.getElementById('scene-preview').innerHTML=m.scenes.map((s,i)=>`
+    <div class="scene-item">
+      <div class="scene-num">${i+1}</div>
+      <div style="flex:1">
+        <span class="beat-badge" style="background:${BEAT_COLORS[s.beat]||'#1e1e3a'};color:${BEAT_TEXT[s.beat]||'#aaa'}">${BEAT_LABELS[s.beat]||s.beat}</span>
+        <span style="font-size:10px;color:#f59e0b;margin-left:6px">${s.duration}초</span>
+        <div style="font-size:11px;color:#888;margin-top:2px">[상단] ${s.top_text}</div>
+        <div class="scene-main">[중단] ${s.main_text}</div>
+        <div style="font-size:12px;color:#4ade80">[하단] ${s.bottom_text}</div>
+        <div class="scene-narr">🎙️ ${s.narration}</div>
+        <div class="scene-img-kw">🖼️ ${s.image_prompt}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// 프로덕션 파이프라인
+// ══════════════════════════════════════════════════════
+async function startProduction(){
+  document.getElementById('script-card').classList.add('hidden');
+  imageBlobs=[]; narrBuffers=[];
+  await generateImages();
+  await generateNarration();
+  await composeVideo();
+}
+
+// ══════════════════════════════════════════════════════
+// 2단계: Pollinations AI 이미지 생성
+// ══════════════════════════════════════════════════════
+async function generateImages(){
+  setStep(2,'active');
+  log('🖼️ AI 이미지 생성 중 (Pollinations)...','info');
+  const scenes=scriptData.scenes;
+
+  for(let i=0;i<scenes.length;i++){
+    const prompt=scenes[i].image_prompt;
+    setProgress(5+(i/scenes.length)*25,`AI 이미지 생성 ${i+1}/${scenes.length}...`);
+    log(`  [${i+1}] "${prompt.slice(0,40)}..."`);
+    try{
+      // Pollinations AI: 완전 무료, 키 불필요
+      const encodedPrompt=encodeURIComponent(prompt+', cinematic composition, no text, no watermark, high quality');
+      const url=`https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&nofeed=true&seed=${i*137+42}`;
+      const res=await fetch(url, {headers:{'Accept':'image/*'}});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      const blob=await res.blob();
+      if(!blob.type.startsWith('image/'))throw new Error('이미지 아님');
+      imageBlobs.push(blob);
+      log(`  ✅ 완료 (${(blob.size/1024).toFixed(0)}KB)`,'ok');
+    }catch(e){
+      log(`  ⚠️ 실패: ${e.message} — 그라데이션으로 대체`,'err');
+      imageBlobs.push(null);
+    }
+    // API 부하 방지 딜레이
+    await new Promise(r=>setTimeout(r,800));
+  }
+  setStep(2,'done');
+  log('✅ AI 이미지 생성 완료','ok');
+}
+
+// ══════════════════════════════════════════════════════
+// 3단계: ElevenLabs 나레이션
+// ══════════════════════════════════════════════════════
+async function generateNarration(){
+  setStep(3,'active');
+  const elKey=document.getElementById('elevenlabs-key').value.trim();
+  if(!elKey){
+    log('ℹ️ ElevenLabs 키 없음 — 나레이션 생략','info');
+    narrBuffers=new Array(scriptData.scenes.length).fill(null);
+    setStep(3,'done'); return;
+  }
+  log('🎙️ 나레이션 생성 중...','info');
+  const VOICE_ID='pNInz6obpgDQGcFmaJgB';
+  const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+
+  for(let i=0;i<scriptData.scenes.length;i++){
+    const text=scriptData.scenes[i].narration;
+    setProgress(32+(i/scriptData.scenes.length)*18,`나레이션 ${i+1}/${scriptData.scenes.length}...`);
+    log(`  [${i+1}] "${text}"`);
+    try{
+      const res=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','xi-api-key':elKey},
+        body:JSON.stringify({text,model_id:'eleven_multilingual_v2',voice_settings:{stability:0.5,similarity_boost:0.75}})
+      });
+      if(!res.ok)throw new Error(`EL 오류 ${res.status}`);
+      const buf=await audioCtx.decodeAudioData(await (await res.blob()).arrayBuffer());
+      narrBuffers.push(buf);
+      log(`  ✅ ${buf.duration.toFixed(1)}초`,'ok');
+    }catch(e){
+      log(`  ⚠️ ${e.message}`,'err');
+      narrBuffers.push(null);
+    }
+  }
+  setStep(3,'done');
+}
+
+// ══════════════════════════════════════════════════════
+// 4단계: Canvas 합성 (레퍼런스 자막 스타일)
+// ══════════════════════════════════════════════════════
+async function composeVideo(){
+  setStep(4,'active');
+  log('🎨 Canvas 합성 시작...','info');
+  setProgress(52,'합성 준비 중...');
+
+  const canvas=document.getElementById('composer');
+  const ctx=canvas.getContext('2d');
+  const W=1080,H=1920,FPS=30;
+  const subtitleStyle=document.getElementById('subtitle-style').value;
+  const scenes=scriptData.scenes;
+  const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  const mediaStreamDest=audioCtx.createMediaStreamDestination();
+
+  // BGM
+  const bgmFile=document.getElementById('bgm-file').files[0];
+  let bgmBuffer=null;
+  if(bgmFile){
+    try{
+      bgmBuffer=await audioCtx.decodeAudioData(await bgmFile.arrayBuffer());
+      log('🎵 BGM 로드 완료','ok');
+    }catch(e){log('⚠️ BGM 실패','err');}
+  }
+  if(bgmBuffer){
+    const g=audioCtx.createGain();
+    g.gain.value=narrBuffers.some(b=>b)?0.22:0.60;
+    const s=audioCtx.createBufferSource();
+    s.buffer=bgmBuffer; s.loop=true;
+    s.connect(g); g.connect(mediaStreamDest); s.start();
+  }
+
+  // 이미지 로드
+  const imgEls=[];
+  for(let i=0;i<imageBlobs.length;i++){
+    if(imageBlobs[i]){
+      const img=new Image();
+      img.src=URL.createObjectURL(imageBlobs[i]);
+      await new Promise(r=>{img.onload=r;img.onerror=r;});
+      imgEls.push(img);
+    }else imgEls.push(null);
+  }
+
+  const mimeType=MediaRecorder.isTypeSupported('video/mp4')?'video/mp4'
+    :MediaRecorder.isTypeSupported('video/webm;codecs=h264')?'video/webm;codecs=h264'
+    :'video/webm;codecs=vp8';
+  const streamTracks=[canvas.captureStream(FPS).getVideoTracks()[0],...mediaStreamDest.stream.getAudioTracks()];
+  const recorder=new MediaRecorder(new MediaStream(streamTracks),{mimeType,videoBitsPerSecond:7000000});
+  const chunks=[];
+  recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+  recorder.start(100);
+  log('🎬 녹화 시작!','info');
+
+  let sceneStartTime=audioCtx.currentTime;
+
+  for(let i=0;i<scenes.length;i++){
+    const scene=scenes[i];
+    const img=imgEls[i];
+    const narrBuf=narrBuffers[i];
+
+    // 나레이션 예약
+    if(narrBuf){
+      const g=audioCtx.createGain(); g.gain.value=1.0;
+      const s=audioCtx.createBufferSource(); s.buffer=narrBuf;
+      s.connect(g); g.connect(mediaStreamDest);
+      s.start(sceneStartTime+0.25);
+    }
+
+    const narrDur=narrBuf?narrBuf.duration+0.7:0;
+    const dur=Math.max(scene.duration,narrDur)*1000;
+    sceneStartTime+=dur/1000;
+
+    setProgress(52+(i/scenes.length)*42,`장면 ${i+1}/${scenes.length} 합성...`);
+    log(`  [${i+1}] ${scene.beat} · ${scene.main_text}`);
+
+    const startMs=performance.now();
+    await new Promise(resolve=>{
+      function draw(){
+        const elapsed=performance.now()-startMs;
+        if(elapsed>=dur){resolve();return;}
+        const t=elapsed/dur;
+
+        // ── 배경 이미지 (살짝 블러 + 어둡게) ──
+        if(img){
+          const scale=Math.max(W/img.width,H/img.height);
+          const dw=img.width*scale,dh=img.height*scale;
+          ctx.filter='blur(3px) brightness(0.72)';
+          ctx.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
+          ctx.filter='none';
+        }else{
+          // 폴백 그라데이션
+          const bg=ctx.createLinearGradient(0,0,0,H);
+          bg.addColorStop(0,'#0a0a14'); bg.addColorStop(1,'#000000');
+          ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+        }
+
+        // ── 비네팅 ──
+        const vig=ctx.createRadialGradient(W/2,H*0.45,H*0.2,W/2,H*0.45,H*0.78);
+        vig.addColorStop(0,'rgba(0,0,0,0)');
+        vig.addColorStop(1,'rgba(0,0,0,0.65)');
+        ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+
+        // ── 자막 스타일별 렌더링 ──
+        if(subtitleStyle==='news'){
+          drawNewsStyle(ctx,scene,W,H,t,i,scenes.length);
+        }else if(subtitleStyle==='drama'){
+          drawDramaStyle(ctx,scene,W,H,t,i,scenes.length);
+        }else{
+          drawCleanStyle(ctx,scene,W,H,t,i,scenes.length);
+        }
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    });
+  }
+
+  recorder.stop();
+  setProgress(96,'파일 변환 중...');
+  await new Promise(r=>recorder.onstop=r);
+
+  const url=URL.createObjectURL(new Blob(chunks,{type:mimeType}));
+  document.getElementById('preview-video').src=url;
+  document.getElementById('dl-btn').href=url;
+  document.getElementById('dl-btn').download=`shorts_${Date.now()}.mp4`;
+  renderUploadMeta();
+  setStep(4,'done'); setStep(5,'done');
+  setProgress(100,'완성!');
+  log('🎉 완성!','ok');
+  document.getElementById('done-card').classList.remove('hidden');
+  document.getElementById('done-card').scrollIntoView({behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════════════════
+// 자막 스타일 1: 모던 뉴스 스타일
+// ══════════════════════════════════════════════════════
+function drawNewsStyle(ctx,scene,W,H,t,idx,total){
+  const FONT = "'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',Arial,sans-serif";
+
+  // ── 상단 소제목 바 (반투명 다크 + 좌측 컬러 액센트) ──
+  const topBarH = 80;
+  const topBarY = H*0.10;
+  ctx.fillStyle='rgba(10,10,20,0.72)';
+  roundRect(ctx, 60, topBarY, W-120, topBarH, 12); ctx.fill();
+  // 액센트 바
+  ctx.fillStyle='#e2e8f0';
+  roundRect(ctx, 60, topBarY, 6, topBarH, [12,0,0,12]); ctx.fill();
+  // 소제목 텍스트
+  ctx.font=`500 38px ${FONT}`;
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(203,213,225,0.92)';
+  ctx.fillText(scene.top_text, 90, topBarY + topBarH/2);
+
+  // ── 중앙 메인 자막 ──
+  const mainSize=86;
+  ctx.font=`bold ${mainSize}px ${FONT}`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  const mainLines=wrapText(ctx,scene.main_text,W*0.84,mainSize);
+  const mainTotH=mainLines.length*(mainSize*1.22);
+  // beat별 메인 색상 (절제된 팔레트)
+  const beatMainColors={hook:'#FDE68A',rising:'#FFFFFF',climax:'#FCA5A5',twist:'#C4B5FD',landing:'#FFFFFF',cta:'#6EE7B7'};
+  const mainColor=beatMainColors[scene.beat]||'#FFFFFF';
+  let my=H*0.435-mainTotH/2+mainSize*0.62;
+  mainLines.forEach(line=>{
+    ctx.strokeStyle='rgba(0,0,0,0.92)'; ctx.lineWidth=11; ctx.lineJoin='round';
+    ctx.strokeText(line,W/2,my);
+    ctx.fillStyle=mainColor; ctx.fillText(line,W/2,my);
+    my+=mainSize*1.22;
+  });
+
+  // ── 하단 설명 박스 (반투명 다크, 좌측 컬러 바) ──
+  const botSize=44;
+  ctx.font=`500 ${botSize}px ${FONT}`;
+  ctx.textAlign='center';
+  const botLines=wrapText(ctx,scene.bottom_text,W*0.78,botSize);
+  const botPadY=22, botPadX=48;
+  const botTotH=botLines.length*(botSize*1.35);
+  const botBoxH=botTotH+botPadY*2;
+  const botBoxW=W-120;
+  const botBoxX=60;
+  const botBoxY=H*0.70;
+  // 박스 배경
+  ctx.fillStyle='rgba(10,10,20,0.78)';
+  roundRect(ctx,botBoxX,botBoxY,botBoxW,botBoxH,14); ctx.fill();
+  // beat별 하단 액센트 색상
+  const beatAccents={hook:'#F59E0B',rising:'#3B82F6',climax:'#EF4444',twist:'#8B5CF6',landing:'#10B981',cta:'#6366F1'};
+  const accentColor=beatAccents[scene.beat]||'#6366F1';
+  ctx.fillStyle=accentColor;
+  roundRect(ctx,botBoxX,botBoxY,6,botBoxH,[14,0,0,14]); ctx.fill();
+  // 텍스트
+  let by=botBoxY+botPadY+botSize*0.6;
+  botLines.forEach(line=>{
+    ctx.strokeStyle='rgba(0,0,0,0.7)'; ctx.lineWidth=4;
+    ctx.strokeText(line,W/2,by);
+    ctx.fillStyle='rgba(241,245,249,0.95)'; ctx.fillText(line,W/2,by);
+    by+=botSize*1.35;
+  });
+
+  // ── 하단 진행 바 ──
+  ctx.fillStyle='rgba(255,255,255,0.10)';
+  roundRect(ctx,60,H-72,W-120,4,2); ctx.fill();
+  ctx.fillStyle=accentColor;
+  roundRect(ctx,60,H-72,(W-120)*t,4,2); ctx.fill();
+
+  // ── 장면 번호 (우상단 작게) ──
+  ctx.font=`400 28px Arial`;
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText(`${idx+1} / ${total}`,W-60,H*0.10+40);
+}
+
+// ══════════════════════════════════════════════════════
+// 자막 스타일 2: 드라마틱 모던
+// ══════════════════════════════════════════════════════
+function drawDramaStyle(ctx,scene,W,H,t,idx,total){
+  const FONT="'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif";
+  const beatAccents={hook:'#F59E0B',rising:'#3B82F6',climax:'#EF4444',twist:'#8B5CF6',landing:'#10B981',cta:'#6366F1'};
+  const accentColor=beatAccents[scene.beat]||'#6366F1';
+
+  // 상단: 가로 라인 + 소제목
+  ctx.strokeStyle=accentColor; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(60,H*0.13-20); ctx.lineTo(W-60,H*0.13-20); ctx.stroke();
+  ctx.font=`500 40px ${FONT}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(226,232,240,0.88)';
+  ctx.fillText(scene.top_text,W/2,H*0.13+10);
+
+  // 중앙 메인
+  const beatColors={hook:'#FDE68A',rising:'#FFFFFF',climax:'#FCA5A5',twist:'#DDD6FE',landing:'#FFFFFF',cta:'#6EE7B7'};
+  const mainLines=wrapText(ctx,scene.main_text,W*0.84,88);
+  ctx.font=`bold 88px ${FONT}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const totH=mainLines.length*110; let my=H*0.43-totH/2+56;
+  mainLines.forEach(line=>{
+    ctx.strokeStyle='rgba(0,0,0,0.95)'; ctx.lineWidth=12; ctx.lineJoin='round';
+    ctx.strokeText(line,W/2,my);
+    ctx.fillStyle=beatColors[scene.beat]||'#fff'; ctx.fillText(line,W/2,my);
+    my+=110;
+  });
+
+  // 하단: 텍스트만 (박스 없이, 외곽선으로 가독성)
+  const bSize=46; ctx.font=`500 ${bSize}px ${FONT}`; ctx.textAlign='center';
+  const bLines=wrapText(ctx,scene.bottom_text,W*0.80,bSize);
+  let by=H*0.73+bSize*0.5;
+  // 얇은 구분선
+  ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(W/2-200,H*0.71); ctx.lineTo(W/2+200,H*0.71); ctx.stroke();
+  bLines.forEach(line=>{
+    ctx.strokeStyle='rgba(0,0,0,0.95)'; ctx.lineWidth=7;
+    ctx.strokeText(line,W/2,by);
+    ctx.fillStyle='rgba(226,232,240,0.92)'; ctx.fillText(line,W/2,by);
+    by+=bSize*1.35;
+  });
+
+  ctx.fillStyle='rgba(255,255,255,0.10)'; roundRect(ctx,60,H-72,W-120,4,2); ctx.fill();
+  ctx.fillStyle=accentColor; roundRect(ctx,60,H-72,(W-120)*t,4,2); ctx.fill();
+  ctx.font='400 28px Arial'; ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText(`${idx+1} / ${total}`,W-60,H*0.13+10);
+}
+
+// ══════════════════════════════════════════════════════
+// 자막 스타일 3: 클린 미니멀
+// ══════════════════════════════════════════════════════
+function drawCleanStyle(ctx,scene,W,H,t,idx,total){
+  ctx.font=`400 40px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(200,200,200,0.85)'; ctx.fillText(scene.top_text,W/2,H*0.13);
+
+  const mainLines=wrapText(ctx,scene.main_text,W*0.82,78);
+  ctx.font=`bold 78px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+  const totH=mainLines.length*96; let my=H*0.42-totH/2+50;
+  mainLines.forEach(line=>{
+    ctx.strokeStyle='rgba(0,0,0,0.95)'; ctx.lineWidth=10; ctx.lineJoin='round';
+    ctx.strokeText(line,W/2,my);
+    ctx.fillStyle='#ffffff'; ctx.fillText(line,W/2,my);
+    my+=96;
+  });
+
+  const bSize=44;
+  ctx.font=`${bSize}px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+  const bLines=wrapText(ctx,scene.bottom_text,W*0.78,bSize);
+  const bTotH=bLines.length*(bSize*1.3)+36;
+  ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1.5;
+  ctx.strokeRect((W-W*0.82)/2,H*0.72-18,W*0.82,bTotH);
+  let by=H*0.72+bSize*0.5;
+  bLines.forEach(line=>{
+    ctx.strokeStyle='rgba(0,0,0,0.9)'; ctx.lineWidth=4;
+    ctx.strokeText(line,W/2,by);
+    ctx.fillStyle='rgba(230,230,230,0.92)'; ctx.fillText(line,W/2,by);
+    by+=bSize*1.3;
+  });
+
+  ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fillRect(60,H-80,W-120,5);
+  ctx.fillStyle='#a78bfa'; ctx.fillRect(60,H-80,(W-120)*t,5);
+  ctx.font='bold 30px Arial'; ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.textAlign='right'; ctx.fillText(`${idx+1}/${total}`,W-60,110);
+}
+
+// ── 공통 유틸 ──────────────────────────────────────────
+function wrapText(ctx,text,maxW,fontSize){
+  if(!text)return[];
+  if(ctx.measureText(text).width<=maxW)return[text];
+  const chars=[...text]; const lines=[]; let cur='';
+  for(const ch of chars){
+    const test=cur+ch;
+    if(ctx.measureText(test).width>maxW&&cur.length>0){lines.push(cur);cur=ch;}
+    else cur=test;
+  }
+  if(cur)lines.push(cur);
+  return lines;
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  const[tl,tr,br,bl]=Array.isArray(r)?r:[r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+tl,y);
+  ctx.lineTo(x+w-tr,y);ctx.quadraticCurveTo(x+w,y,x+w,y+tr);
+  ctx.lineTo(x+w,y+h-br);ctx.quadraticCurveTo(x+w,y+h,x+w-br,y+h);
+  ctx.lineTo(x+bl,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-bl);
+  ctx.lineTo(x,y+tl);ctx.quadraticCurveTo(x,y,x+tl,y);
+  ctx.closePath();
+}
+
+function renderUploadMeta(){
+  const m=scriptData;
+  document.getElementById('upload-meta').innerHTML=`
+    <div class="meta-label">유튜브 제목</div>
+    <div style="font-size:16px;font-weight:600;color:#e8e6f0">${m.title}</div>
+    <div class="meta-label">인스타그램 제목</div>
+    <div style="font-size:15px;color:#e8e6f0">${m.instagram_title}</div>
+    <div class="meta-label">썸네일 문구</div>
+    <div class="thumbnail-text">🖼️ ${m.thumbnail_text}</div>
+    <div class="meta-label">유튜브 해시태그</div>
+    <div class="meta-tags">${m.youtube_hashtags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <div class="meta-label">인스타그램 해시태그</div>
+    <div class="meta-tags">${m.instagram_hashtags.map(t=>`<span class="tag tag-insta">${t}</span>`).join('')}</div>`;
+}
+
+function copyAllMeta(){
+  const m=scriptData;
+  navigator.clipboard.writeText(
+    `[유튜브]\n제목: ${m.title}\n해시태그: ${m.youtube_hashtags.join(' ')}\n\n[인스타그램]\n제목: ${m.instagram_title}\n해시태그: ${m.instagram_hashtags.join(' ')}\n\n썸네일: ${m.thumbnail_text}`
+  ).then(()=>alert('✅ 복사 완료!'));
+}
+</script>
+</body>
+</html>
