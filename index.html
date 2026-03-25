@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts Factory</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #e8e6f0; min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 24px; text-align: center; border-bottom: 1px solid #2a2a4a; }
+.header h1 { font-size: 28px; font-weight: 700; background: linear-gradient(90deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: #888; font-size: 14px; margin-top: 6px; }
+.container { max-width: 780px; margin: 0 auto; padding: 24px 16px; }
+.card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; font-weight: 600; color: #a78bfa; margin-bottom: 16px; }
+label { font-size: 13px; color: #aaa; display: block; margin-bottom: 6px; }
+input[type="password"], select, textarea {
+  width: 100%; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 10px;
+  color: #e8e6f0; padding: 10px 14px; font-size: 14px; outline: none; transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { border-color: #a78bfa; }
+textarea { resize: vertical; min-height: 80px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s; width: 100%; margin-top: 8px; }
+.btn-primary { background: linear-gradient(135deg, #7c3aed, #2563eb); color: #fff; }
+.btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-green { background: linear-gradient(135deg, #059669, #0284c7); color: #fff; }
+.btn-green:hover { opacity: 0.9; }
+.btn-gray { background: #1e1e3a; color: #aaa; border: 1px solid #2a2a4a; }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.step { display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+  border-radius: 20px; font-size: 13px; border: 1px solid #2a2a4a; color: #555; }
+.step.active { border-color: #a78bfa; color: #a78bfa; background: #1e1040; }
+.step.done { border-color: #059669; color: #34d399; background: #0a2e1e; }
+.step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.log { background: #0a0a14; border: 1px solid #1e1e3a; border-radius: 10px;
+  padding: 14px; font-family: monospace; font-size: 13px; min-height: 60px;
+  max-height: 200px; overflow-y: auto; color: #7dd3fc; }
+.log-line.ok { color: #34d399; }
+.log-line.err { color: #f87171; }
+.log-line.info { color: #a78bfa; }
+.progress-bar { height: 8px; background: #1e1e3a; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #2563eb); border-radius: 4px; transition: width 0.4s; }
+.progress-label { font-size: 13px; color: #aaa; margin-top: 6px; }
+.meta-title { font-size: 20px; font-weight: 700; color: #a78bfa; margin-bottom: 6px; }
+.meta-sub { font-size: 13px; color: #888; margin-bottom: 12px; }
+.meta-label { font-size: 12px; color: #666; margin-top: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.meta-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { background: #1e1040; border: 1px solid #3730a3; color: #a78bfa; padding: 3px 10px; border-radius: 20px; font-size: 12px; }
+.tag-insta { background: #1a0a2e; border: 1px solid #7c3aed; color: #c084fc; }
+.thumbnail-text { font-size: 18px; font-weight: 700; color: #fbbf24; padding: 10px; background: #1a1000; border-radius: 8px; border: 1px solid #92400e; margin-top: 6px; }
+.scene-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1e1e2e; }
+.scene-item:last-child { border-bottom: none; }
+.scene-num { width: 26px; height: 26px; border-radius: 50%; background: #1e1040; border: 1px solid #3730a3; color: #a78bfa; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.scene-time { font-size: 11px; color: #60a5fa; font-family: monospace; margin-bottom: 2px; }
+.scene-main { font-size: 14px; font-weight: 600; color: #e8e6f0; margin-bottom: 2px; }
+.scene-detail { font-size: 12px; color: #c4b5fd; margin-bottom: 3px; }
+.scene-kw { font-size: 11px; color: #666; }
+.scene-duration { font-size: 10px; color: #f59e0b; background: #1a1000; padding: 1px 6px; border-radius: 4px; display: inline-block; margin-left: 6px; }
+.divider { height: 1px; background: #2a2a4a; margin: 16px 0; }
+.hidden { display: none; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+.badge-cost { background: #0a2e1e; color: #34d399; border: 1px solid #059669; }
+.done-video { width: 100%; max-height: 380px; border-radius: 12px; border: 1px solid #2a2a4a; display: block; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎬 Shorts Factory</h1>
+  <p>AI 스크립트 → 다이나믹 컷 편집 → Canvas 영상 자동 완성</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>⚙️ API 설정</h2>
+    <div class="row">
+      <div>
+        <label>Claude API 키 <span class="badge badge-cost">영상 1편 ≈ $0.002</span></label>
+        <input type="password" id="claude-key" placeholder="sk-ant-...">
+      </div>
+      <div>
+        <label>Pexels API 키 <span class="badge badge-cost">무료</span></label>
+        <input type="password" id="pexels-key" placeholder="Pexels 키 입력">
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <label>콘텐츠 주제</label>
+      <select id="niche">
+        <option value="역사/교양 (충격적인 사실, 반전 있는 내용)">📜 역사/교양</option>
+        <option value="AI/테크 지식 큐레이션">🤖 AI/테크</option>
+        <option value="건강/생활 꿀팁 (과학적 근거 포함)">💪 건강/생활</option>
+        <option value="심리학/자기계발">🧠 심리학/자기계발</option>
+      </select>
+    </div>
+    <div style="margin-top:12px">
+      <label>추가 요청사항 (선택)</label>
+      <textarea id="extra-prompt" placeholder="예: 20~30대 타겟, 반드시 반전 있는 내용으로"></textarea>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step" id="step-1"><span class="step-dot"></span>스크립트 생성</div>
+    <div class="step" id="step-2"><span class="step-dot"></span>영상 다운로드</div>
+    <div class="step" id="step-3"><span class="step-dot"></span>Canvas 합성</div>
+    <div class="step" id="step-4"><span class="step-dot"></span>완성</div>
+  </div>
+
+  <button class="btn btn-primary" id="start-btn" onclick="startFactory()">▶ 영상 자동 생성 시작</button>
+
+  <div class="card hidden" id="log-card" style="margin-top:20px">
+    <h2>📋 진행 상황</h2>
+    <div class="log" id="log"></div>
+    <div class="progress-bar" id="pbar" style="display:none"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label hidden" id="plabel"></div>
+  </div>
+
+  <div class="card hidden" id="script-card">
+    <h2>📝 생성된 스크립트</h2>
+    <div id="meta-preview"></div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:10px" id="scene-count-label">장면 구성</div>
+    <div id="scene-preview"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" onclick="startVideoProcess()" style="flex:1">✅ 이 주제로 영상 만들기</button>
+      <button class="btn btn-gray" onclick="startFactory()" style="flex:1">🔄 다시 생성</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="done-card">
+    <h2>🎉 영상 완성!</h2>
+    <video id="preview-video" class="done-video" controls playsinline></video>
+    <a class="btn btn-green" id="dl-btn" download="shorts.mp4">⬇️ 영상 다운로드 (mp4)</a>
+    <div class="divider"></div>
+    <h2 style="margin-bottom:12px">🏷️ 업로드 정보</h2>
+    <div id="upload-meta"></div>
+    <button class="btn btn-green" onclick="copyAllMeta()" style="margin-top:12px">📋 제목 + 해시태그 복사</button>
+    <button class="btn btn-primary" onclick="location.reload()" style="margin-top:8px">🔄 새 영상 만들기</button>
+  </div>
+
+</div>
+
+<canvas id="composer" width="1080" height="1920" style="display:none"></canvas>
+
+<script>
+let scriptData = null;
+let videoBlobs = [];
+
+function log(msg, type='') {
+  const el = document.getElementById('log');
+  const d = document.createElement('div');
+  d.className = 'log-line ' + type;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+function setStep(n, s) { document.getElementById('step-' + n).className = 'step ' + s; }
+function setProgress(pct, label) {
+  document.getElementById('pbar').style.display = 'block';
+  document.getElementById('pfill').style.width = pct + '%';
+  const lbl = document.getElementById('plabel');
+  lbl.classList.remove('hidden');
+  lbl.textContent = label;
+}
+
+// ── 1단계: 스크립트 생성 ──────────────────────────────
+async function startFactory() {
+  const claudeKey = document.getElementById('claude-key').value.trim();
+  const pexelsKey = document.getElementById('pexels-key').value.trim();
+  if (!claudeKey) { alert('Claude API 키를 입력하세요.'); return; }
+  if (!pexelsKey) { alert('Pexels API 키를 입력하세요.'); return; }
+
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('log-card').classList.remove('hidden');
+  document.getElementById('script-card').classList.add('hidden');
+  document.getElementById('done-card').classList.add('hidden');
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('pbar').style.display = 'none';
+  document.getElementById('plabel').classList.add('hidden');
+  setStep(1,'active'); setStep(2,''); setStep(3,''); setStep(4,'');
+
+  log('🤖 Claude에게 스크립트 요청 중...', 'info');
+
+  const niche = document.getElementById('niche').value;
+  const extra = document.getElementById('extra-prompt').value.trim();
+
+  const prompt = `너는 유튜브 숏츠/인스타 릴스 전문 콘텐츠 제작자야.
+'${niche}' 분야에서 바이럴 가능성 높은 주제 하나를 골라서,
+반드시 아래 JSON 형식으로만 응답해. 마크다운 기호 절대 금지.
+${extra ? '추가 조건: ' + extra : ''}
+
+중요 규칙:
+- scenes는 반드시 11~12개로 구성 (빠른 컷 전환을 위해)
+- duration은 초 단위, 훅은 2~3초, 일반 장면은 4~6초, 클라이맥스는 6~8초, 마무리는 3~4초
+- main_text: 핵심 자막 (10자 이내, 강렬하게)
+- detail_text: 보조 설명 자막 (20자 이내, 구체적 수치나 근거 포함)
+- stock_keyword: Pexels 검색용 영어 키워드 (구체적일수록 좋음)
+- cut_type: "hook"(훅), "fact"(사실), "climax"(클라이맥스), "cta"(구독유도) 중 하나
+
+{
+  "title": "유튜브 제목 30자 이내",
+  "instagram_title": "인스타 제목 30자 이내",
+  "topic": "주제 한 줄 요약",
+  "thumbnail_text": "썸네일 문구 20자 이내",
+  "scenes": [
+    {"duration":3,"main_text":"훅 자막 10자","detail_text":"보조 설명 20자","stock_keyword":"영어 키워드","cut_type":"hook"},
+    {"duration":3,"main_text":"핵심1 자막","detail_text":"구체적 수치나 사실","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":5,"main_text":"핵심2 자막","detail_text":"보조 설명","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":4,"main_text":"핵심3 자막","detail_text":"보조 설명","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":4,"main_text":"핵심4 자막","detail_text":"보조 설명","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":5,"main_text":"핵심5 자막","detail_text":"보조 설명","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":4,"main_text":"핵심6 자막","detail_text":"보조 설명","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":6,"main_text":"반전 자막","detail_text":"충격적 결론","stock_keyword":"영어 키워드","cut_type":"climax"},
+    {"duration":5,"main_text":"결론 자막","detail_text":"핵심 정리","stock_keyword":"영어 키워드","cut_type":"climax"},
+    {"duration":4,"main_text":"추가 사실","detail_text":"보조 설명","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":4,"main_text":"마무리 자막","detail_text":"여운 있는 한 줄","stock_keyword":"영어 키워드","cut_type":"fact"},
+    {"duration":3,"main_text":"구독 부탁해요","detail_text":"좋아요와 알림 설정도!","stock_keyword":"subscribe notification","cut_type":"cta"}
+  ],
+  "youtube_hashtags": ["#태그1","#태그2","#태그3","#태그4","#태그5"],
+  "instagram_hashtags": ["#태그1","#태그2","#태그3","#태그4","#태그5","#태그6","#태그7","#태그8","#태그9","#태그10"]
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': claudeKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API 오류'); }
+    const data = await res.json();
+    let raw = (data.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('JSON 파싱 실패 — 다시 시도해주세요');
+    scriptData = JSON.parse(match[0]);
+
+    // duration 합계 계산
+    const totalSec = scriptData.scenes.reduce((s,c) => s + c.duration, 0);
+    setStep(1,'done');
+    log(`✅ 주제: ${scriptData.topic}`, 'ok');
+    log(`✅ 제목: ${scriptData.title}`, 'ok');
+    log(`✅ 총 ${scriptData.scenes.length}컷 · ${totalSec}초`, 'ok');
+    renderScriptPreview(totalSec);
+    document.getElementById('script-card').classList.remove('hidden');
+    document.getElementById('start-btn').disabled = false;
+  } catch(e) {
+    log('❌ ' + e.message, 'err');
+    setStep(1,'');
+    document.getElementById('start-btn').disabled = false;
+  }
+}
+
+// ── 스크립트 미리보기 ────────────────────────────────
+function renderScriptPreview(totalSec) {
+  const m = scriptData;
+  document.getElementById('meta-preview').innerHTML = `
+    <div class="meta-title">${m.title}</div>
+    <div class="meta-sub">${m.topic}</div>
+    <div class="thumbnail-text">🖼️ ${m.thumbnail_text}</div>
+    <div class="meta-label">유튜브 해시태그</div>
+    <div class="meta-tags">${m.youtube_hashtags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+
+  document.getElementById('scene-count-label').textContent =
+    `장면 구성 (${m.scenes.length}컷 · 총 ${totalSec}초)`;
+
+  const cutColors = { hook:'#f59e0b', fact:'#60a5fa', climax:'#f87171', cta:'#34d399' };
+  const cutLabels = { hook:'훅', fact:'사실', climax:'클라이맥스', cta:'구독유도' };
+
+  document.getElementById('scene-preview').innerHTML = m.scenes.map((s,i) => `
+    <div class="scene-item">
+      <div class="scene-num" style="border-color:${cutColors[s.cut_type]||'#3730a3'};color:${cutColors[s.cut_type]||'#a78bfa'}">${i+1}</div>
+      <div style="flex:1">
+        <div class="scene-time">
+          <span style="color:${cutColors[s.cut_type]||'#aaa'}">[${cutLabels[s.cut_type]||s.cut_type}]</span>
+          <span class="scene-duration">${s.duration}초</span>
+        </div>
+        <div class="scene-main">${s.main_text}</div>
+        <div class="scene-detail">${s.detail_text}</div>
+        <div class="scene-kw">🔍 ${s.stock_keyword}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── 2단계: 영상 다운로드 ──────────────────────────────
+async function startVideoProcess() {
+  const pexelsKey = document.getElementById('pexels-key').value.trim();
+  document.getElementById('script-card').classList.add('hidden');
+  setStep(2,'active');
+  videoBlobs = [];
+  const scenes = scriptData.scenes;
+
+  // 중복 키워드는 캐시해서 재사용
+  const cache = {};
+
+  for (let i = 0; i < scenes.length; i++) {
+    const kw = scenes[i].stock_keyword;
+    setProgress(5 + (i/scenes.length)*38, `영상 다운로드 중... (${i+1}/${scenes.length})`);
+    log(`[${i+1}/${scenes.length}] "${kw}"`);
+
+    if (cache[kw]) {
+      videoBlobs.push(cache[kw]);
+      log('  ✅ 캐시 사용', 'ok');
+      continue;
+    }
+    try {
+      const res = await fetch(
+        `https://api.pexels.com/videos/search?query=${encodeURIComponent(kw)}&per_page=5&orientation=portrait`,
+        { headers: { Authorization: pexelsKey } }
+      );
+      const data = await res.json();
+      const videos = data.videos || [];
+      if (!videos.length) {
+        // 키워드 단순화 후 재시도
+        const simpleKw = kw.split(' ')[0];
+        const res2 = await fetch(
+          `https://api.pexels.com/videos/search?query=${encodeURIComponent(simpleKw)}&per_page=3&orientation=portrait`,
+          { headers: { Authorization: pexelsKey } }
+        );
+        const data2 = await res2.json();
+        if (!data2.videos?.length) { videoBlobs.push(null); log('  ⚠️ 영상 없음'); continue; }
+        videos.push(...data2.videos);
+      }
+      const vfiles = videos[0].video_files || [];
+      const chosen = vfiles.find(f => f.height > f.width) || vfiles[0];
+      const blob = await (await fetch(chosen.link)).blob();
+      cache[kw] = blob;
+      videoBlobs.push(blob);
+      log(`  ✅ ${(blob.size/1024/1024).toFixed(1)}MB`, 'ok');
+    } catch(e) {
+      videoBlobs.push(null);
+      log('  ❌ ' + e.message, 'err');
+    }
+  }
+  setStep(2,'done');
+  await composeVideo();
+}
+
+// ── 3단계: Canvas 합성 ───────────────────────────────
+async function composeVideo() {
+  setStep(3,'active');
+  log('🎨 Canvas 합성 시작...', 'info');
+  setProgress(45, 'Canvas 합성 준비 중...');
+
+  const canvas = document.getElementById('composer');
+  const ctx = canvas.getContext('2d');
+  const W = 1080, H = 1920, FPS = 30;
+  const scenes = scriptData.scenes;
+
+  const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4'
+    : MediaRecorder.isTypeSupported('video/webm;codecs=h264') ? 'video/webm;codecs=h264'
+    : 'video/webm;codecs=vp8';
+  log(`📦 포맷: ${mimeType}`, 'info');
+
+  const stream = canvas.captureStream(FPS);
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  recorder.start(100);
+  log('🎬 녹화 시작!', 'info');
+
+  for (let i = 0; i < scenes.length; i++) {
+    const scene = scenes[i];
+    const duration = scene.duration * 1000; // ms
+    setProgress(45 + (i/scenes.length)*48, `장면 ${i+1}/${scenes.length} 합성 중...`);
+    log(`  [${i+1}] ${scene.main_text} (${scene.duration}초 · ${scene.cut_type})`);
+
+    const blob = videoBlobs[i];
+    let videoEl = null;
+    if (blob) {
+      videoEl = document.createElement('video');
+      videoEl.src = URL.createObjectURL(blob);
+      videoEl.muted = true;
+      videoEl.loop = true;
+      videoEl.playsInline = true;
+      await new Promise(r => { videoEl.onloadeddata = r; videoEl.onerror = r; videoEl.load(); });
+      // 짧은 컷은 영상 중간부터 시작해서 다양성 확보
+      if (videoEl.duration > scene.duration + 2) {
+        const maxStart = videoEl.duration - scene.duration - 1;
+        videoEl.currentTime = Math.random() * maxStart;
+        await new Promise(r => { videoEl.onseeked = r; });
+      }
+      try { await videoEl.play(); } catch(e) {}
+    }
+
+    const startTime = performance.now();
+    let frameCount = 0;
+
+    await new Promise(resolve => {
+      function drawFrame() {
+        const elapsed = performance.now() - startTime;
+        if (elapsed >= duration) { resolve(); return; }
+        frameCount++;
+
+        // ── 배경 ──
+        if (videoEl && videoEl.readyState >= 2) {
+          const vw = videoEl.videoWidth, vh = videoEl.videoHeight;
+          const scale = Math.max(W/vw, H/vh);
+          const dw = vw*scale, dh = vh*scale;
+          ctx.drawImage(videoEl, (W-dw)/2, (H-dh)/2, dw, dh);
+        } else {
+          // 컷 타입별 배경색
+          const bgColors = { hook:'#1a0a00', fact:'#000a1a', climax:'#1a000a', cta:'#0a1a00' };
+          ctx.fillStyle = bgColors[scene.cut_type] || '#0a0a0a';
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // ── 그라데이션 오버레이 ──
+        const grad = ctx.createLinearGradient(0, H*0.40, 0, H);
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(0.5, 'rgba(0,0,0,0.45)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.78)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // ── 컷 타입별 상단 강조 바 ──
+        const barColors = { hook:'#f59e0b', fact:'#3b82f6', climax:'#ef4444', cta:'#10b981' };
+        const barColor = barColors[scene.cut_type] || '#6366f1';
+        ctx.fillStyle = barColor;
+        ctx.fillRect(0, 0, W, 8);
+
+        // ── 장면 번호 표시 (상단 세이프존 안) ──
+        ctx.font = 'bold 36px Arial';
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${i+1} / ${scenes.length}`, 60, 100);
+
+        // ── 자막 렌더링 ──
+        drawSubtitle(ctx, scene.main_text, scene.detail_text, scene.cut_type, W, H);
+
+        requestAnimationFrame(drawFrame);
+      }
+      drawFrame();
+    });
+
+    if (videoEl) { videoEl.pause(); URL.revokeObjectURL(videoEl.src); }
+  }
+
+  recorder.stop();
+  setProgress(94, '파일 변환 중...');
+  log('⏳ 변환 중...', 'info');
+  await new Promise(r => recorder.onstop = r);
+
+  const finalBlob = new Blob(chunks, { type: mimeType });
+  const url = URL.createObjectURL(finalBlob);
+  document.getElementById('preview-video').src = url;
+  document.getElementById('dl-btn').href = url;
+  document.getElementById('dl-btn').download = `shorts_${Date.now()}.mp4`;
+
+  renderUploadMeta();
+  setStep(3,'done'); setStep(4,'done');
+  setProgress(100, '완성!');
+  log('🎉 완성!', 'ok');
+  document.getElementById('done-card').classList.remove('hidden');
+  document.getElementById('done-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── 자막 렌더링 (메인 + 보조, 컷 타입별 색상) ──────────
+function drawSubtitle(ctx, mainText, detailText, cutType, W, H) {
+  // 세이프존: 상단 15%, 하단 22% 제외
+  // 자막 중앙 위치: H * 0.615
+  const CENTER_Y = H * 0.615;
+  const MAIN_SIZE = 82;
+  const DETAIL_SIZE = 46;
+  const LINE_GAP = 20;
+  const PAD_X = 50, PAD_Y = 28;
+  const MAX_W = W * 0.84;
+  const RADIUS = 20;
+
+  // 컷 타입별 메인 자막 색상
+  const textColors = { hook:'#fbbf24', fact:'#ffffff', climax:'#fca5a5', cta:'#6ee7b7' };
+  const mainColor = textColors[cutType] || '#ffffff';
+
+  // 메인 자막 줄바꿈
+  ctx.font = `bold ${MAIN_SIZE}px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+  const mainLines = wrapText(ctx, mainText, MAX_W);
+
+  // 보조 자막 줄바꿈
+  ctx.font = `${DETAIL_SIZE}px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+  const detailLines = wrapText(ctx, detailText, MAX_W - 40);
+
+  const mainBlockH = mainLines.length * (MAIN_SIZE * 1.25);
+  const detailBlockH = detailText ? detailLines.length * (DETAIL_SIZE * 1.3) + LINE_GAP : 0;
+  const totalTextH = mainBlockH + detailBlockH;
+
+  const boxW = MAX_W + PAD_X * 2;
+  const boxH = totalTextH + PAD_Y * 2;
+  const boxX = (W - boxW) / 2;
+  const boxY = CENTER_Y - totalTextH / 2 - PAD_Y;
+
+  // 배경 박스
+  ctx.fillStyle = 'rgba(0,0,0,0.65)';
+  roundRect(ctx, boxX, boxY, boxW, boxH, RADIUS);
+  ctx.fill();
+
+  // 컷 타입별 좌측 강조 선
+  const accentColors = { hook:'#f59e0b', fact:'#3b82f6', climax:'#ef4444', cta:'#10b981' };
+  ctx.fillStyle = accentColors[cutType] || '#6366f1';
+  roundRect(ctx, boxX, boxY, 8, boxH, [RADIUS, 0, 0, RADIUS]);
+  ctx.fill();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // 메인 자막
+  let currentY = CENTER_Y - totalTextH / 2 + MAIN_SIZE * 0.625;
+  ctx.font = `bold ${MAIN_SIZE}px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+  mainLines.forEach(line => {
+    ctx.strokeStyle = 'rgba(0,0,0,0.95)';
+    ctx.lineWidth = 9;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(line, W / 2, currentY);
+    ctx.fillStyle = mainColor;
+    ctx.fillText(line, W / 2, currentY);
+    currentY += MAIN_SIZE * 1.25;
+  });
+
+  // 구분선
+  if (detailText) {
+    currentY += LINE_GAP * 0.4;
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(W/2 - 160, currentY);
+    ctx.lineTo(W/2 + 160, currentY);
+    ctx.stroke();
+    currentY += LINE_GAP * 0.8;
+
+    // 보조 자막
+    ctx.font = `${DETAIL_SIZE}px 'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif`;
+    detailLines.forEach(line => {
+      ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+      ctx.lineWidth = 5;
+      ctx.strokeText(line, W / 2, currentY);
+      ctx.fillStyle = 'rgba(220,220,220,0.92)';
+      ctx.fillText(line, W / 2, currentY);
+      currentY += DETAIL_SIZE * 1.3;
+    });
+  }
+}
+
+// ── 텍스트 자동 줄바꿈 ───────────────────────────────
+function wrapText(ctx, text, maxWidth) {
+  if (!text) return [];
+  if (ctx.measureText(text).width <= maxWidth) return [text];
+  const chars = [...text];
+  const lines = [];
+  let current = '';
+  for (const ch of chars) {
+    const test = current + ch;
+    if (ctx.measureText(test).width > maxWidth && current.length > 0) {
+      lines.push(current);
+      current = ch;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  const [tl, tr, br, bl] = Array.isArray(r) ? r : [r,r,r,r];
+  ctx.beginPath();
+  ctx.moveTo(x+tl, y);
+  ctx.lineTo(x+w-tr, y); ctx.quadraticCurveTo(x+w, y, x+w, y+tr);
+  ctx.lineTo(x+w, y+h-br); ctx.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+  ctx.lineTo(x+bl, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-bl);
+  ctx.lineTo(x, y+tl); ctx.quadraticCurveTo(x, y, x+tl, y);
+  ctx.closePath();
+}
+
+function renderUploadMeta() {
+  const m = scriptData;
+  document.getElementById('upload-meta').innerHTML = `
+    <div class="meta-label">유튜브 제목</div>
+    <div style="font-size:16px;font-weight:600;color:#e8e6f0">${m.title}</div>
+    <div class="meta-label">인스타그램 제목</div>
+    <div style="font-size:15px;color:#e8e6f0">${m.instagram_title}</div>
+    <div class="meta-label">썸네일 문구</div>
+    <div class="thumbnail-text">🖼️ ${m.thumbnail_text}</div>
+    <div class="meta-label">유튜브 해시태그</div>
+    <div class="meta-tags">${m.youtube_hashtags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <div class="meta-label">인스타그램 해시태그</div>
+    <div class="meta-tags">${m.instagram_hashtags.map(t=>`<span class="tag tag-insta">${t}</span>`).join('')}</div>`;
+}
+
+function copyAllMeta() {
+  const m = scriptData;
+  const text = `[유튜브]\n제목: ${m.title}\n해시태그: ${m.youtube_hashtags.join(' ')}\n\n[인스타그램]\n제목: ${m.instagram_title}\n해시태그: ${m.instagram_hashtags.join(' ')}\n\n썸네일: ${m.thumbnail_text}`;
+  navigator.clipboard.writeText(text).then(() => alert('✅ 복사 완료!'));
+}
+
+function timeToSec(t) {
+  const [m,s] = t.trim().split(':').map(Number);
+  return m*60+s;
+}
+</script>
+</body>
+</html>
